@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Schema Editor</title>
+
+  <!-- a Reset CSS, to cancel any browser-specifics -->
+  <link rel="stylesheet" href="css/normalize.css" />
+
+  <!-- jQuery UI theme -->
+  <link rel="stylesheet" href="js/lib/vendor/jquery-ui/jquery-ui.css" />
+
+  <!-- 3-column layout using CSS3 flexbox -->
+  <link rel="stylesheet" href="css/columns.css" />
+
+  <!-- make 3-column layout pretty -->
+  <link rel="stylesheet" href="css/default-theme.css" />
+
+  <!-- specific to Schema Editor -->
+  <link rel="stylesheet" href="css/schema-edit.css" />
+
+  <!-- *** Javascript *** -->
+
+  <!-- mustache template compiler -->
+  <script src="js/lib/vendor/hogan-3.0.2.js"></script>
+
+  <!-- jQuery + jQueryUI -->
+  <script src="js/lib/vendor/jquery-1.10.2.js"></script>
+  <script src="js/lib/vendor/jquery-ui/jquery-ui.js"></script>
+
+  <script src="js/lib/vendor/upload/js/vendor/jquery.ui.widget.js"></script>
+  <script src="js/lib/vendor/upload/js/jquery.iframe-transport.js"></script>
+  <script src="js/lib/vendor/upload/js/jquery.fileupload.js"></script>
+
+  <script src="js/lib/combobox.js"></script>
+
+  <!-- date formatting -->
+  <script src="js/lib/vendor/moment.js"></script>
+
+  <!-- for converting turtle to ntriples for upload via sparql update -->
+  <!-- currently not using, instead using a workaround to tweak Turtle/SPARQL
+       syntax to use Updates -->
+  <!-- script src="js/lib/rdf-ext.js.map"></script
+  < script src="js/lib/n3-browser.js"></script>
+   -->
+
+  <!-- TODO return to these
+<script src="js/lib/wysihtml5x-toolbar.js"></script>
+<script src="js/lib/advanced_and_extended.js"></script>
+-->
+
+  <!-- local scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/lib/sparql-connector.js"></script>
+
+  <!-- Schema Editor Specific -->
+  <script src="js/se-templates.js"></script>
+  <script src="js/schema-edit.js"></script>
+  <script src="js/lib/utils.js"></script>
+
+  <script>
+    $(function() {
+      SchemaEdit.init();
+      spinner();
+      SchemaEdit.render();
+    });
+  </script>
+</head>
+
+<body>
+  <div id="spinner" class="spinner"></div>
+
+  <div id="header">
+
+    <div id="titleBlock">
+
+      <div class="help">
+        <div id="overviewHelpText" title="Overview" class="helpText">
+          <p>This is Schema Edit. It aims to simplify the development of RDF vocabularies/ontologies. It is not designed to be a general purpose RDF editor. The vocabulary being edited is contained as a graph in a SPARQL 1.1 capable store. Editing operations
+            are carried out directly on that graph, changes take place immediately.</p>
+          <p>The graph name is taken as being the namespace name of the vocabulary.</p>
+        </div>
+      </div>
+
+      <h2 id="pageTitle" class="hasHelp" data-help-id="overviewHelpText">Schema Editor</h2>
+
+    </div>
+
+    <div id="currentContext">
+      <div id="currentGraphBlock" class="editBlock">
+
+        <div class="help">
+          <div id="graphChooserHelpText" title="Graph Chooser" class="helpText">
+            <p>This is the Graph Name of the Vocabulary currently being edited. Click the edit box to list the graphs available in the store.</p>
+          </div>
+        </div>
+
+        <label>
+          <strong class="hasHelp" data-help-id="graphChooserHelpText">Current Graph :</strong>
+        </label>
+
+        <div id="currentGraph">
+          <span id="graphChooser"></span>
+        </div>
+      </div>
+
+      <br/>
+      <div id="currentResourceBlock" class="editBlock">
+
+        <div class="help">
+          <div id="currentResourceHelpText" title="Current Resource" class="helpText">
+            <p>This is the resource to which some of the operations below will apply. Click the edit box to list the resources available in the store.</p>
+          </div>
+        </div>
+
+        <label class="hasHelp" data-help-id="currentResourceHelpText">
+          <strong>Current Resource :</strong>
+        </label>
+
+        <!-- div id="currentR" -->
+        <span id="resourceChooser"></span>
+        <button id="deleteResource">Delete Resource</button>
+        <div id="deleteResourceText" class="dialog">
+          <p>Resource Deleted</p>
+        </div>
+        <!-- /div -->
+
+      </div>
+    </div>
+
+    <button id="newVocabButton" title="Create new RDF Schema">New Schema</button>
+    <div id="newVocabBlock" class="editBlock">
+      <div class="help">
+        <button class="helpButton">?</button>
+        <div id="newVocabHelpText" title="New Vocab" class="helpText">
+          <p>Create a new schema</p>
+        </div>
+      </div>
+      <a href="#uploadRDF">Upload RDF</a>
+      <h4 class="hasHelp" data-help-id="newVocabHelpText">Create New Vocab</h4>
+      <em>All fields required</em>
+      <label for="vocabName">Name</label>
+      <input id="vocabName" type="text" name="vocabName" title="name of vocab" />
+      <label for="vocabNamespace">Namespace/Graph Name</label>
+      <input id="vocabNamespace" type="text" name="vocabNamespace" title="namespace of vocab" value="http://" />
+      <label for="vocabPrefix">Preferred Prefix</label>
+      <input id="vocabPrefix" type="text" name="vocabPrefix" title="vocab preferred prefix" />
+      <button id="createVocabButton">Create</button>
+    </div>
+
+  </div>
+
+  <div id="wrapper">
+
+    <!--*** Left Panel *** -->
+    <div id="left">
+
+      <div class="list-block">
+
+        <div class="help">
+          <div id="classesPropertiesHelpText" title="Classes and Properties" class="helpText">
+            <p>These are the RDF classes and properties in the current graph. Clicking on a class or property will set it to the Current Resource.</p>
+          </div>
+        </div>
+        <div class="classesBlock">
+          <h2 id="classesTitle" class="header hasHelp" data-help-id="classesPropertiesHelpText">Classes</h2>
+          <div id="classes" class="block resourceList small"></div>
+        </div>
+      </div>
+      <br/>
+      <div class="list-block">
+        <div class="propertiesBlock">
+          <h2 id="propertiesTitle" class="header hasHelp" data-help-id="classesPropertiesHelpText">Properties</h2>
+          <div id="properties" class="block resourceList small"></div>
+        </div>
+      </div>
+    </div>
+    <!--*** End Left Panel *** -->
+
+    <!--*** Center Panel *** -->
+    <div id="center">
+
+      <div id="editor"></div>
+
+      <div class="help">
+        <div id="termHelpText" title="Edit Term" class="helpText">
+          <p>Values of key properties of the current resource may be entered, edited and added here.
+            <ul>
+              <li>The <strong>(+)</strong> button creates a new field</li>
+              <li>The language for each literal field may be set by the corresponding button</li>
+              <li>The <strong>Update</strong> button passes the new values to the store</li>
+            </ul>
+            Resource (URI) values may be entered in 3 forms:
+            <ul>
+              <li>plain name, e.g. <em>Cat</em> - this will be interpreted as being in the current namespace</li>
+              <li><em>namespace:name</em> (CURIE) e.g. <em>foaf:name</em> - various well-known vocabularies are supported</li>
+              <li>full URI</li>
+            </ul>
+          </p>
+        </div>
+      </div>
+
+      <div id="newClass" class="editBlock block">
+
+        <div class="help">
+          <div id="addClassHelpText" title="New Class" class="helpText">
+            <p>Enter the name of the new class (it will be placed in the current namespace), and click the New Class button. </p>
+          </div>
+        </div>
+
+        <h4 class="hasHelp" data-help-id="addClassHelpText">New Class</h4>
+        <label>Class Name</label>
+        <input class="resourceName" title="Enter text" value="" />
+        <button id="createClassButton">Create</button>
+      </div>
+
+      <div id="newProperty" class="editBlock block">
+        <div class="help">
+          <div id="addPropertyHelpText" title="Add Property" class="helpText">
+            <p>Enter the name of the new property (it will be placed in the current namespace), and click the New Property button.</p>
+          </div>
+        </div>
+
+        <h4 class="hasHelp" data-help-id="addPropertyHelpText">New Property</h4>
+        <label>Property Name</label>
+        <input class="resourceName" title="Enter text" value="" />
+        <button id="createPropertyButton">Create</button>
+      </div>
+
+      <div id="addPropertyValueBlock" class="editBlock">
+        <div class="help">
+          <div id="addPropertyValueHelpText" title="Add Property Value" class="helpText">
+            <p>A Current Resource must have been selected (above), then this may be used to add a specific triple. Provide values for the property and its value (literal or resource).</p>
+          </div>
+        </div>
+
+        <!-- div id="advancedBlock">
+          <h4 class="hasHelp" data-help-id="addPropertyValueHelpText">Add Property To Current Resource</h4>
+          <div id="propertyChooser">
+          </div>
+
+          <label for="propertyLiteralValue">Literal Value</label>
+          <input id="propertyLiteralValue" title="enter text (leave blank for URI value)" lang="en" />
+          <button class="langButton"></button>
+
+
+          <div id="propertyUriValue">
+            <label for="uriValue">URI Value</label>
+          </div>
+
+          <button id="addPropertyValueButton">Add</button>
+
+          <div id="noResourceError" class="inform">
+            <p>Please select current resource first.</p>
+          </div>
+        </div -->
+      </div>
+
+      <div id="uploadRDFBlock" class="editBlock block">
+
+        <div class="help">
+          <div id="uploadRDFHelpText" title="Upload RDF" class="helpText">
+            <p>Allows the uploading of Turtle data to the current graph. First enter the namespace/graph name/base URI of the RDF you wish to upload. Then click Choose File. Once chosen, the data will automatically be uploaded.</p>
+          </div>
+        </div>
+
+        <a name="uploadRDF" />
+        <h3 class="hasHelp" data-help-id="uploadRDFHelpText">Upload RDF</h3>
+
+        <form id="upload" enctype="text/turtle" method="post">
+          <label for='graphName'>Graph</label>
+          <input name="graph" id="graphName" size="20" value="https://example.org/" />
+          <br/>
+          <input id="uploadFilename" type="file" name="uploadFilename" size="40" />
+        </form>
+      </div>
+
+      <br/>
+
+      <div id="exportTurtleBlock" class="editBlock block">
+        <div class="help">
+          <div id="exportTurtleHelpText" title="Upload RDF" class="helpText">
+            <p>Displays the Turtle of the Current Graph. You are responsible for saving it yourself.</p>
+          </div>
+        </div>
+
+        <br/>
+
+        <h3 class="hasHelp blockTitle" data-help-id="exportTurtleHelpText">Export Turtle</h3>
+        <button id="turtle">Export</button>
+      </div>
+
+      <br/>
+
+      <div id="endpoints" class="editBlock block">
+        <div class="help">
+          <div id="endpointsHelpText" title="Endpoints" class="helpText">
+            <p>These URLs should point to the SPARQL 1.1 store in which you want create the schema. e.g. when running Fuseki locally, the values might be:
+            </p>
+            <p>
+              <strong>Query Endpoint :</strong>
+              <pre>http://localhost:3030/schema-edit/query</pre>
+            </p>
+            <p>
+              <strong>Update Endpoint :</strong>
+              <pre>http://localhost:3030/schema-edit/update</pre>
+            </p>
+          </div>
+        </div>
+        <h3 class="blockTitle hasHelp" data-help-id="endpointsHelpText">Endpoint Settings</h3>
+        <br/>
+        <div>
+          <label for="queryEndpoint">Query Endpoint</label>
+          <input id="queryEndpoint" type="text" value=""></input>
+        </div>
+        <div>
+          <label for="updateEndpoint">Update Endpoint</label>
+          <input id="updateEndpoint" type="text" value=""></input>
+        </div>
+        <br/>
+        <button id="endpointButton">Set New Values</button>
+        <button id="endpointClearButton">Clear</button>
+      </div>
+
+    </div>
+    <!--*** End Center Panel *** -->
+
+    <!--*** Right Panel *** -->
+    <!-- TODO - maybe...
+    <div id="right">
+      <h2>History</h2>
+    </div>
+  -->
+  </div>
+  <!--*** End Right Panel *** -->
+
+  <div id="footer">
+    <a href="/test/tests.html">Run Tests</a>
+  </div>
+
+  <!-- the following are display:none, only used in dialogs -->
+  <div id="dialog">popup/alert dialog</div>
+
+  <div id="languageSelect" class="dialog">
+    <fieldset id="languageChooser">
+    </fieldset>
+    <div id="addLanguageBlock">
+      <label id="addLanguageLabel">Add Language:</label>
+      <input id="addLanguage" type="text" name="addLanguage" title="enter language code" />
+    </div>
+  </div>
+
+  <div id="postConfirmDialog" class="dialog" title="Confirmation">
+    Data posted.
+  </div>
+
+  <div id="posted">
+    Updated.
+  </div>
+
+  <div id="noValueDialog">
+    Please enter a value
+  </div>
+
+</body>
+
+</html>

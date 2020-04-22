@@ -1,0 +1,97 @@
+/* Does 3-column "Holy Grail" layout
+ * using CSS3 flexbox */
+
+#wrapper {
+   min-height: 800px;
+   margin: 0px;
+   padding: 0px;
+   display: -webkit-flex;
+   display:         flex;
+   -webkit-flex-flow: row;
+           flex-flow: row;
+   }
+
+  #center {
+   margin: 4px;
+   padding: 5px;
+
+   -webkit-flex: 3 1 60%;
+           flex: 3 1 60%;
+   -webkit-order: 2;
+           order: 2;
+   }
+
+  #left {
+   margin: 4px;
+   padding: 5px;
+   border: 1px solid #8888bb;
+   border-radius: 7pt;
+   background: #ccccff;
+   -webkit-flex: 1 6 20%;
+           flex: 1 6 20%;
+   -webkit-order: 1;
+           order: 1;
+   }
+
+  #right {
+   margin: 4px;
+   padding: 5px;
+   border: 1px solid #8888bb;
+   border-radius: 7pt;
+   background: #ccccff;
+   -webkit-flex: 1 6 20%;
+           flex: 1 6 20%;
+   -webkit-order: 3;
+           order: 3;
+   }
+
+  #header, #footer {
+      display: inline-block;
+        margin: 4px;
+          padding: 5px;
+            min-height: 100px;
+   }
+
+  /* Too narrow to support three columns */
+  @media all and (max-width: 640px) {
+
+   #center {
+    -webkit-flex-flow: column;
+            flex-direction: column;
+   }
+
+   #center, #left, #right {
+    /* Return them to document order */
+    -webkit-order: 0;
+            order: 0;
+   }
+
+  #center, #left, #right, header, footer {
+    min-height: 50px;
+    max-height: 50px;
+   }
+  }
+
+/* --- End Column Layout --- */
+
+/* ------------------------------- */
+
+
+
+/* TODO fix this */
+@media (min-width: 768px) {
+    body {
+        flex-direction: row;
+        flex: 1;
+    }
+
+.wrapper {
+        flex: 1;
+    }
+
+nav,
+aside {
+        /* 12em is the width of the columns */
+        flex: 0 0 12em;
+    }
+}
