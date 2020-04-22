@@ -1,11 +1,11 @@
 {
 	"name": "schema-editor",
-	"version": "1.0.0-alpha",
+	"version": "1.0.0",
 	"description": "In-Browser RDF Schema editor",
 	"main": "start/server.js",
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/danja/tbd..."
+		"url": "git@github.com:danja/schema-editor.git"
 	},
 	"keywords": [
 		"RDF Interfaces"
@@ -15,7 +15,7 @@
 	  "dependencies": {
 		    "connect": "~3.3",
 		    "serve-static": "~1.9",
-		    "morgan": "~1.6"
+		    "morgan": ">=1.9.1"
 		  },
 			"scripts": {
 	 "preinstall": "bin/install-fuseki.sh",
@@ -23,8 +23,8 @@
 	 "stop": "bin/stop.sh"
 	 },
 	"bugs": {
-		"url": "https://github.com/danja/tbd..."
+		"url": "https://github.com/danja/schema-editor"
 	},
-	"homepage": "https://github.com/danja/tbd...",
+	"homepage": "https://github.com/danja/schema-editor",
 	"readmeFilename": "README.md"
 }
